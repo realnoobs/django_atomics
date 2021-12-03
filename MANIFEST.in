@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include MANIFEST.in
+include CHANGELOG.md
+graft django_atomics
+global-exclude __pycache__
+global-exclude *.py[co]
