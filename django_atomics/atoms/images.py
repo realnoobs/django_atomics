@@ -1,4 +1,4 @@
-from django_atomics.component import Component
+from django_atomics.base import Component
 
 
 class Img(Component):

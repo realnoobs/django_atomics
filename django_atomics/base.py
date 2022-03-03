@@ -1,9 +1,9 @@
 from django.forms.widgets import MediaDefiningClass
-from django.template import Context, Template
+from django.template import engines
 from django.template.loader import get_template
 from django.utils.safestring import mark_safe
 
-from .utils import construct_template_name, flatstyle, flatatt
+from .utils import construct_template_name, flatatt, flatstyle
 
 VALID_RENDER_FORMAT = ["html", "dict", "json"]
 
@@ -18,9 +18,11 @@ class InvalidComponentTemplate(Exception):
 
 class BaseComponent:
 
+    engine = "django"
     template_string = None
 
     def __init__(self, classes=None, attrs=None, style=None, childs=None, **initial_context):
+        self.name = self.__class__.__name__
         self.attrs = self.build_attrs(attrs)
         self.classes = self.build_classes(classes)
         self.childs = self.build_childs(childs)
@@ -109,11 +111,17 @@ class BaseComponent:
             )
         return _childs
 
+    def get_child_objects(self, parent_context=None):
+        return self.childs
+
     def get_childs(self, parent_context):
         rendered_childs = ""
-        for child in self.childs:
+        for child in self.get_child_objects(parent_context):
             rendered_childs += child.render(context=parent_context)
         return mark_safe(rendered_childs)
+
+    def _engine(self, using=None):
+        return engines[self.engine] if using is None else engines[using]
 
     def get_template(self, template_name=None):
         """Return template name"""
@@ -123,8 +131,8 @@ class BaseComponent:
                 "template_string or template_name is not set for atomic component %s" % class_name
             )
         if self.template_string:
-            template = Template(template_string=self.get_template_string())
-            return template
+            engine = self._engine()
+            return engine.from_string(self.get_template_string())
         if not template_name:
             return get_template(template_name or self.get_template_name())
 
@@ -153,6 +161,7 @@ class BaseComponent:
         if self.is_shown(context):
             # set default component context
             context_base = {
+                "name": self.name,
                 "attrs": self.get_attrs(extra_attrs=None),
                 "classes": self.get_classes(extra_classes=None),
                 "style": self.get_style(extra_style=None),
@@ -170,7 +179,7 @@ class BaseComponent:
 
     def render_html(self, context):
         template = self.get_template()
-        return template.render(Context(context))
+        return template.render(context)
 
     def render_json(self, context):
         raise NotImplementedError("%s doesn't implement render_json method" % self.__class__.__name__)
