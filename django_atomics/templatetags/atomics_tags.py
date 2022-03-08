@@ -1,6 +1,6 @@
 from django.template import Library
 
-from django_atomics.components import Component, NotComponent
+from django_atomics import Component, NotComponent
 
 register = Library()
 
