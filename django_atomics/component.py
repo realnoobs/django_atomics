@@ -114,7 +114,9 @@ class BaseComponent:
         else:
             raise ValueError("%s is not valid childs argument type." % type(childs))
         for child in _childs:
-            assert isinstance(child, BaseComponent), "childs item %s must be an instance of Component class " % child
+            assert isinstance(child, BaseComponent), (
+                "childs item %s must be an instance of Component class " % child
+            )
         return _childs
 
     def get_childs(self, parent_context):
