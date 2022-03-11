@@ -160,16 +160,17 @@ class BaseComponent:
     def render(self, context=None, extra_attrs=None, extra_style=None, extra_classes=None):
         if self.is_shown(context):
             # set default component context
-            context_base = {
+            base_context = self.build_context_data(context)
+            base_context.update({
                 "name": self.name,
                 "attrs": self.get_attrs(extra_attrs=None),
                 "classes": self.get_classes(extra_classes=None),
                 "style": self.get_style(extra_style=None),
                 "childs": self.get_childs(context),
                 **self.initial_context,
-            }
+            })
             # update base context based with render context
-            context_data = self.get_context_data(**context_base)
+            context_data = self.get_context_data(**base_context)
             if context_data is None:
                 raise TypeError("Expected a dict from get_context_data, got None")
             render_method = getattr(self, "render_html")
